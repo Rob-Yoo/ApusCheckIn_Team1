@@ -61,7 +61,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         if distance < 1{
             return "Check In Available"
         } else {
-            return "My distance from Cluster: \(distance) Kilometer"
+            return "My distance from Cluster: \(distance) km"
         }
     }
     

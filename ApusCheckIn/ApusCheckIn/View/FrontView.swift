@@ -11,7 +11,8 @@ import Firebase
 struct FrontView: View {
     @ObservedObject var locationManager: LocationManager
     @ObservedObject var uuidManager: UUIDManager
-//     DB의 idfv와 기기의 idfv를 비교해 받아올 예정
+    let db: Firestore
+
     var body: some View {
         NavigationView {
             VStack {
@@ -20,7 +21,7 @@ struct FrontView: View {
                     .font(.largeTitle)
                     .fontWeight(.thin)
                 Spacer()
-                EntranceButton(uuidManager: uuidManager, isInLocation: locationManager.isNear).padding(.bottom)
+                EntranceButton(uuidManager: uuidManager, isInLocation: locationManager.isNear, db: db).padding(.bottom)
                 Spacer()
                 Text("IntraID: \(uuidManager.intraID)")
                     .font(.title2).fontWeight(.ultraLight)
@@ -36,7 +37,7 @@ struct FrontView: View {
                              message: "",
                              keyboardType: .alphabet) { result in
                 if let intraID = result {
-                    Firestore.firestore().collection("testCollection").document(uuidManager.UUID).setData(["intraID" : "*\(intraID)*"], merge: true)
+                    db.addIntraID(collection: "testCollection", document: uuidManager.UUID, intraID: intraID)
                     uuidManager.isFirst = false
                     uuidManager.renewIntraId(intraID: intraID)
                 }
@@ -48,11 +49,11 @@ struct FrontView: View {
 struct EntranceButton: View {
     @ObservedObject var uuidManager: UUIDManager
     var isInLocation: Bool
+    let db: Firestore
     var time: String = ""
     var body: some View {
         NavigationLink (
             destination: CalenderView(),
-            //MyView(intraID: uuidManager.intraID),
             label: {
                 if isInLocation == true {
                     ZStack {
@@ -67,15 +68,7 @@ struct EntranceButton: View {
                 }
             })
             .simultaneousGesture(TapGesture().onEnded{
-                Firestore.firestore().collection("testCollection").document(uuidManager.UUID).setData(["Date" : Date()], merge: true)
-//                print(Date())
-//                Firestore.firestore().collection("testCollection").document(uuidManager.UUID).getDocument { (document, error) in
-//                    if let document = document, document.exists {
-//                        let dataDescription = document.data().map(String.init(describing:)) ?? "nil"
-//                        let tmp = dataDescription
-//                        print(tmp)
-//                    }
-//                }
+                db.addTodayToDates(collection: "testCollection", document: uuidManager.UUID)
             })
             .frame(width: self.buttonWidth(),
                    height: self.buttonHeight())
@@ -95,10 +88,11 @@ struct FrontView_Previews: PreviewProvider {
     static var previews: some View {
         let checkin = LocationManager()
         let uuidManager = UUIDManager(uuid: UIDevice.current.identifierForVendor!.uuidString)
+        let db = Firestore.firestore()
         FrontView(
             locationManager: checkin,
-            uuidManager: uuidManager
+            uuidManager: uuidManager,
+            db: db
         )
-        
     }
 }

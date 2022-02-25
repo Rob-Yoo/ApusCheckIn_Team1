@@ -12,17 +12,19 @@ import Firebase
 struct ApusCheckInApp: App {
     init() {
         FirebaseApp.configure()
+        db = Firestore.firestore()
         checkin = LocationManager()
         uuidManager = UUIDManager(uuid: UIDevice.current.identifierForVendor!.uuidString)
     }
-
+    let db: Firestore
     let checkin: LocationManager
     let uuidManager: UUIDManager
     var body: some Scene {
         WindowGroup {
             FrontView(
                 locationManager: checkin,
-                uuidManager: uuidManager
+                uuidManager: uuidManager,
+                db: db
             )
         }
     }
